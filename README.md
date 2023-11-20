@@ -27,6 +27,7 @@ This Python file (**don't change its name**) should contain:
 ### Learn your model
 
 ```sh
+# To be run from the base directory
 PYTHONPATH=. python -m stk_actor.learn
 ```
 
@@ -38,12 +39,16 @@ This should create the `pystk_actor.pth` file (**don't change its name**) that c
 
 ## 1. Create the ZIP file
 
-Create your 
+After learning your model, create the ZIP file containing the code and the actor parameters with:
+
 ```sh
+# To be run from the base directory
 (cd stk_actor; zip -r ../actor.zip .)
 ```
 
 ## 2. Test
+
+You can use [master-dac](https://pypi.org/project/master_dac/) to test the zip file (you can even experiment with races between different actors to select the one of your choice):
 
 ```sh
 
