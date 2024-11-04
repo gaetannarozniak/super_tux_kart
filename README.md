@@ -53,13 +53,12 @@ You can use [master-dac](https://pypi.org/project/master_dac/) to test the zip f
 
 ```sh
 
-# Usage: master-dac rld stk-race [OPTIONS] [ZIP_FILES]...
-#
-#   Race
-#
-# Options:
-#   --hide  Don't show the race
-#   --help  Show this message and exit.
+# Usage: master-dac rld stk-race [OPTIONS] [ZIP_FILES|MODULE]...
 
-master-dac rld stk --hide stk_actor.zip
+master-dac rld stk-race --hide stk_actor.zip
+```
+
+To test your agent directly (for debug purposes), you can also use
+```sh
+PYTHONPATH=. master-dac rld stk-race --hide stk_actor
 ```

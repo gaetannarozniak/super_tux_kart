@@ -12,7 +12,10 @@ env_name = "supertuxkart/flattened_multidiscrete-v0"
 #: Player name
 player_name = "Example"
 
-def get_actor(state, observation_space: gym.spaces.Space, action_space: gym.spaces.Space) -> Agent:
+
+def get_actor(
+    state, observation_space: gym.spaces.Space, action_space: gym.spaces.Space
+) -> Agent:
     actor = Actor(observation_space, action_space)
     actor.load_state_dict(state)
     return Agents(actor, ArgmaxActor())
