@@ -17,11 +17,11 @@ def get_actor(
     state, observation_space: gym.spaces.Space, action_space: gym.spaces.Space
 ) -> Agent:
     actor = Actor(observation_space, action_space)
-    
+
     # Returns a dummy actor
     if state is None:
         return SamplingActor(action_space)
-        
+
     actor.load_state_dict(state)
     return Agents(actor, ArgmaxActor())
 

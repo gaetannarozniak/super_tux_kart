@@ -7,7 +7,7 @@ class MyWrapper(gym.ActionWrapper):
     def __init__(self, env, option: int):
         super().__init__(env)
         self.option = option
-        
+
     def action(self, action):
         # We do nothing here
         return action
@@ -31,9 +31,10 @@ class ArgmaxActor(Agent):
 
 class SamplingActor(Agent):
     """Samples random actions"""
+
     def __init__(self, action_space: gym.Space):
         super().__init__()
         self.action_space = action_space
-    
+
     def forward(self, t: int):
         self.set(("action", t), torch.LongTensor([self.action_space.sample()]))
