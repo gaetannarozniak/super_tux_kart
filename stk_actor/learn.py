@@ -4,10 +4,13 @@ from functools import partial
 import torch
 import inspect
 from bbrl.agents.gymnasium import ParallelGymAgent, make_env
+from bbrl.agents import Agents, TemporalAgent
+from bbrl.workspace import Workspace
+
 
 # Note the use of relative imports
-from .actors import Actor
-from .pystk_actor import env_name, get_wrappers, player_name
+from actors import Actor, SamplingActor
+from pystk_actor import env_name, get_wrappers, player_name
 
 
 if __name__ == "__main__":
@@ -26,8 +29,11 @@ if __name__ == "__main__":
 
     # (2) Learn
 
-    actor = Actor(env.observation_space, env.action_space)
-    ...
+    actor = SamplingActor(env.action_space)
+    temporal_agent = TemporalAgent(Agents(env_agent, actor))
+
+    workspace = Workspace()
+    temporal_agent(workspace, t=0, n_steps=10)
 
     # (3) Save the actor sate
     mod_path = Path(inspect.getfile(get_wrappers)).parent

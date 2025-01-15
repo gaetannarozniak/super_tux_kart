@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"name": "pystk2_gymnasium",
+			"path": "../../../../../opt/anaconda3/envs/dac_env/lib/python3.9/site-packages/pystk2_gymnasium"
+		},
+		{
+			"path": ".."
+		}
+	],
+	"settings": {}
+}

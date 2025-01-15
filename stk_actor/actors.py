@@ -16,9 +16,14 @@ class MyWrapper(gym.ActionWrapper):
 class Actor(Agent):
     """Computes probabilities over action"""
 
+    def __init__(self, obs_space: gym.Space, action_space: gym.Space):
+        super().__init__()
+        self.obs_space = obs_space
+        self.action_space = action_space
+
     def forward(self, t: int):
-        # Computes probabilities over actions
-        pass
+        self.set(("action", t), torch.LongTensor([self.action_space.sample()]))
+        
 
 
 class ArgmaxActor(Agent):

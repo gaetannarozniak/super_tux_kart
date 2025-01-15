@@ -4,7 +4,7 @@ import gymnasium as gym
 
 # Imports our Actor class
 # IMPORTANT: note the relative import
-from .actors import Actor, MyWrapper, ArgmaxActor, SamplingActor
+from actors import Actor, MyWrapper, ArgmaxActor, SamplingActor
 
 #: The base environment name
 env_name = "supertuxkart/flattened_multidiscrete-v0"
