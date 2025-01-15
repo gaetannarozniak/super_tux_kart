@@ -3,6 +3,10 @@
 This project template contains a basic structure that could be used for your PySTK2/BBRL project.
 For information about the PySTK2 gymnasium environment, please look at the [corresponding github page](https://github.com/bpiwowar/pystk2-gymnasium)
 
+https://pystk.readthedocs.io/en/latest/index.html
+
+See https://pystk.readthedocs.io/en/latest/action.html for action list
+
 ## Structure
 
 **Warning**: all the imports should be relative within your module (see `learn.py` for an example).
