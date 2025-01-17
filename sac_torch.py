@@ -9,7 +9,7 @@ class Agent():
 
     def __init__(self, alpha=0.0003, beta=0.0003, input_dims=[8],
                  env=None, gamma=0.99, n_actions=2, max_size=1000000, tau=0.005,
-                 larer1_size=256, layer2_size=256, batch_size=256, reward_scale=2):
+                 batch_size=256, reward_scale=2):
         self.gamma = gamma
         self.tau = tau
         self.memory = ReplayBuffer(max_size, input_dims, n_actions)
@@ -71,7 +71,7 @@ class Agent():
         if self.memory.mem_cntr < self.batch_size:
             return
         
-        state, action, reward, new_state, done = \
+        state, new_state, action, reward, done = \
                 self.memory.sample_buffer(self.batch_size)
         
         reward = torch.tensor(reward, dtype=torch.float).to(self.actor.device)
@@ -80,7 +80,6 @@ class Agent():
         state = torch.tensor(state, dtype=torch.float).to(self.actor.device)
         action = torch.tensor(action, dtype=torch.float).to(self.actor.device)
 
-        print(f"{state.shape = } | {state_.shape = }")
         value = self.value(state).view(-1)
         value_ = self.target_value(state_).view(-1)
         value_[done] = 0.0

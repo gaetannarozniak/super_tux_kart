@@ -20,7 +20,7 @@ class CriticNetwork(nn.Module):
         self.checkpoint_file = os.path.join(self.checkpoint_dir, name+'_sac')
 
         self.fc1 = nn.Linear(self.input_dims[0]+n_actions, self.fc1_dims)
-        self.fc1 = nn.Linear(self.fc1_dims, self.fc2_dims)
+        self.fc2 = nn.Linear(self.fc1_dims, self.fc2_dims)
         self.q = nn.Linear(self.fc2_dims, 1)
 
         self.optimizer = optim.Adam(self.parameters(), lr=beta)
@@ -68,7 +68,6 @@ class ValueNetwork(nn.Module):
         self.to(self.device)
 
     def forward(self, state):
-        print(f"{state.shape = }")
         state_value = self.fc1(state)
         state_value = F.relu(state_value)
         state_value = self.fc2(state_value)
@@ -121,7 +120,6 @@ class ActorNetwork(nn.Module):
         sigma = self.sigma(prob)
 
         sigma = torch.clamp(sigma, min=self.reparam_noise, max=1)
-
         return mu, sigma
     
     def sample_normal(self, state, reparameterize=True):
@@ -132,10 +130,11 @@ class ActorNetwork(nn.Module):
         else:
             actions = probabilities.sample()
 
-        action = torch.tanh(actions)*torch.tensor(self.max_action).to(self.device)
+        action = torch.tanh(actions)
         log_probs = probabilities.log_prob(actions) 
         log_probs -= torch.log(1-action.pow(2)+self.reparam_noise)
         log_probs = log_probs.sum(1, keepdim=True)
+        action *= torch.tensor(self.max_action).to(self.device)
 
         return action, log_probs
     
