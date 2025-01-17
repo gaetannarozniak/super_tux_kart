@@ -39,7 +39,6 @@ class CriticNetwork(nn.Module):
         return q
     
     def save_checkpoint(self):
-        print(f"{self.checkpoint_file = }")
         torch.save(self.state_dict(), self.checkpoint_file)
 
     def load_checkpoint(self):
@@ -134,7 +133,7 @@ class ActorNetwork(nn.Module):
         log_probs = probabilities.log_prob(actions) 
         log_probs -= torch.log(1-action.pow(2)+self.reparam_noise)
         log_probs = log_probs.sum(1, keepdim=True)
-        action *= torch.tensor(self.max_action).to(self.device)
+        action = action*torch.tensor(self.max_action).to(self.device)
 
         return action, log_probs
     
