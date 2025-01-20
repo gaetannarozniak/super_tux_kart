@@ -1,4 +1,3 @@
-# import pybullet_envs
 import gym
 import numpy as np
 from sac_torch import Agent
