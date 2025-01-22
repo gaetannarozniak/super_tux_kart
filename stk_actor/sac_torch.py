@@ -5,7 +5,7 @@ import numpy as np
 from buffer import ReplayBuffer
 from networks import ActorNetwork, CriticNetwork, ValueNetwork
 
-class Agent():
+class AgentSac():
 
     def __init__(self, alpha=0.0003, beta=0.0003, input_dims=[8],
                  env=None, gamma=0.99, n_actions=2, max_size=1000000, tau=0.005,

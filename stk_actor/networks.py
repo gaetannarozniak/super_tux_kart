@@ -133,7 +133,7 @@ class ActorNetwork(nn.Module):
         log_probs = probabilities.log_prob(actions) 
         log_probs -= torch.log(1-action.pow(2)+self.reparam_noise)
         log_probs = log_probs.sum(1, keepdim=True)
-        action = action*torch.tensor(self.max_action).to(self.device)
+        action = action*torch.tensor(self.max_action, dtype=action.dtype).to(self.device)
 
         return action, log_probs
     
