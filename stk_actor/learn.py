@@ -9,7 +9,7 @@ import inspect
 from bbrl.agents.gymnasium import ParallelGymAgent, make_env
 from bbrl.agents import Agents, TemporalAgent
 from bbrl.workspace import Workspace
-from utils import plot_rewards
+from .utils import plot_rewards
 
 from .my_wrappers import (
     ObsFilterWrapper,
