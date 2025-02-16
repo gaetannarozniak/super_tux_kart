@@ -28,7 +28,7 @@ from .actors import ActorSac
 from .pystk_actor import env_name, get_wrappers, player_name
 
 
-n_steps = 300
+n_steps = 800
 n_epochs = 1000
 scale_distance_center = 0.05
 rewards = np.zeros((n_epochs, n_steps))
@@ -67,7 +67,6 @@ if __name__ == "__main__":
     env = RewardSmoothWrapper(env)
 
     actor = ActorSac(obs_space=env.observation_space, action_space=env.action_space)
-    agent = actor.agent
     rewards = np.zeros((n_epochs, n_steps))
 
     # (2) Learn
@@ -76,23 +75,20 @@ if __name__ == "__main__":
         obs = env.reset()[0]
         episode_reward = 0  # Track total episode reward
         for t in range(n_steps):
-            action = agent.choose_action(obs)
+            action = actor.agent.choose_action(obs)
             new_obs, reward, terminated, truncated, info = env.step(action)
             done = terminated or truncated
-            agent.remember(obs, action, reward, new_obs, done)
+            actor.agent.remember(obs, action, reward, new_obs, done)
 
             # Perform a learning step and get loss values
-            loss_dict = agent.learn()
+            loss_dict = actor.agent.learn()
             obs = new_obs
             rewards[e][t] = reward
             if done:
                 obs = env.reset()[0]  # Reset and start next episode
                 break
-            plot_rewards(rewards, e)
 
-    mod_path = Path(inspect.getfile(get_wrappers)).parent
-    torch.save(actor.state_dict(), mod_path / "pystk_actor.pth")
-    env.close()
+    plot_rewards(rewards, n_epochs - 1)
 
     # (3) Save the actor sate
     mod_path = Path(inspect.getfile(get_wrappers)).parent

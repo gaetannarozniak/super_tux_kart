@@ -1,11 +1,12 @@
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from .buffer import ReplayBuffer
 from .networks import ActorNetwork, CriticNetwork, ValueNetwork
 
 
-class AgentSac:
+class AgentSac(nn.Module):
 
     def __init__(
         self,
@@ -19,6 +20,7 @@ class AgentSac:
         batch_size=256,
         reward_scale=2,
     ):
+        super().__init__()
         self.input_dims = [
             np.sum(np.prod(space.shape) for space in observation_space.values())
         ]
