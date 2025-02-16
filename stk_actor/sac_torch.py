@@ -1,38 +1,73 @@
-import torch 
+import torch
 import torch.nn.functional as F
 import numpy as np
-from buffer import ReplayBuffer
-from networks import ActorNetwork, CriticNetwork, ValueNetwork
+from .buffer import ReplayBuffer
+from .networks import ActorNetwork, CriticNetwork, ValueNetwork
 
-class AgentSac():
 
-    def __init__(self, alpha=0.0003, beta=0.0003, input_dims=[8],
-                 env=None, gamma=0.99, n_actions=2, max_size=1000000, tau=0.005,
-                 batch_size=256, reward_scale=2):
+class AgentSac:
+
+    def __init__(
+        self,
+        alpha=0.0003,
+        beta=0.0003,
+        action_space=None,
+        observation_space=None,
+        gamma=0.99,
+        max_size=1000000,
+        tau=0.005,
+        batch_size=256,
+        reward_scale=2,
+    ):
+        self.input_dims = [
+            np.sum(np.prod(space.shape) for space in observation_space.values())
+        ]
         self.gamma = gamma
         self.tau = tau
-        self.memory = ReplayBuffer(max_size, input_dims, n_actions)
         self.batch_size = batch_size
-        self.n_actions = n_actions
+        self.n_actions = action_space.shape[0]
+        self.memory = ReplayBuffer(max_size, self.input_dims, self.n_actions)
 
-        self.actor = ActorNetwork(alpha, input_dims, n_actions=n_actions, 
-                                  name='actor', max_action=env.action_space.high)
-        self.critic_1 = CriticNetwork(beta, input_dims, n_actions=n_actions, name='critic1')
-        self.critic_2 = CriticNetwork(beta, input_dims, n_actions=n_actions, name='critic2')
-        self.value = ValueNetwork(beta, input_dims, name='value')
-        self.target_value = ValueNetwork(beta, input_dims, name='target_value')
+        self.actor = ActorNetwork(
+            alpha,
+            self.input_dims,
+            n_actions=self.n_actions,
+            name="actor",
+            max_action=action_space.high,
+        )
+        self.critic_1 = CriticNetwork(
+            beta, self.input_dims, n_actions=self.n_actions, name="critic1"
+        )
+        self.critic_2 = CriticNetwork(
+            beta, self.input_dims, n_actions=self.n_actions, name="critic2"
+        )
+        self.value = ValueNetwork(beta, self.input_dims, name="value")
+        self.target_value = ValueNetwork(beta, self.input_dims, name="target_value")
 
         self.scale = reward_scale
         self.update_network_parameters(tau=1)
 
+    def flatten_observation(self, observation: dict) -> np.ndarray:
+        flattened_components = [
+            np.array(value).flatten() for value in observation.values()
+        ]
+        return np.concatenate(flattened_components)
+
     def choose_action(self, observation):
+        observation = self.flatten_observation(observation)
         state = torch.Tensor(np.array([observation])).to(self.actor.device)
         actions, _ = self.actor.sample_normal(state, reparameterize=False)
 
         return actions.cpu().detach().numpy()[0]
 
     def remember(self, state, action, reward, new_state, done):
-        self.memory.store_transition(state, action, reward, new_state, done)
+        self.memory.store_transition(
+            self.flatten_observation(state),
+            action,
+            reward,
+            self.flatten_observation(new_state),
+            done,
+        )
 
     def update_network_parameters(self, tau=None):
         if tau is None:
@@ -45,13 +80,15 @@ class AgentSac():
         value_state_dict = dict(value_params)
 
         for name in value_state_dict:
-            value_state_dict[name] = tau*value_state_dict[name].clone() + \
-                    (1-tau)*target_value_state_dict[name].clone()
-            
+            value_state_dict[name] = (
+                tau * value_state_dict[name].clone()
+                + (1 - tau) * target_value_state_dict[name].clone()
+            )
+
         self.target_value.load_state_dict(value_state_dict)
 
     def save_models(self):
-        print('.... saving models ....')
+        print(".... saving models ....")
         self.actor.save_checkpoint()
         self.value.save_checkpoint()
         self.target_value.save_checkpoint()
@@ -59,7 +96,7 @@ class AgentSac():
         self.critic_2.save_checkpoint()
 
     def load_models(self):
-        print('.... loading models ....')
+        print(".... loading models ....")
         self.actor.load_checkpoint()
         self.value.load_checkpoint()
         self.target_value.load_checkpoint()
@@ -69,10 +106,11 @@ class AgentSac():
     def learn(self):
         if self.memory.mem_cntr < self.batch_size:
             return
-        
-        state, new_state, action, reward, done = \
-                self.memory.sample_buffer(self.batch_size)
-        
+
+        state, new_state, action, reward, done = self.memory.sample_buffer(
+            self.batch_size
+        )
+
         reward = torch.tensor(reward, dtype=torch.float).to(self.actor.device)
         done = torch.tensor(done).to(self.actor.device)
         state_ = torch.tensor(new_state, dtype=torch.float).to(self.actor.device)
@@ -93,7 +131,7 @@ class AgentSac():
         self.value.optimizer.zero_grad()
         value_target = critic_value - log_probs
         value_loss = 0.5 * F.mse_loss(value, value_target)
-        value_loss.backward(retain_graph=True)
+        value_loss.backward()
         self.value.optimizer.step()
 
         actions, log_probs = self.actor.sample_normal(state, reparameterize=True)
@@ -106,12 +144,12 @@ class AgentSac():
         actor_loss = log_probs - critic_value
         actor_loss = torch.mean(actor_loss)
         self.actor.optimizer.zero_grad()
-        actor_loss.backward(retain_graph=True)
+        actor_loss.backward()
         self.actor.optimizer.step()
 
         self.critic_1.optimizer.zero_grad()
         self.critic_2.optimizer.zero_grad()
-        q_hat = self.scale * reward + self.gamma*value_
+        q_hat = self.scale * reward + self.gamma * value_
         q1_old_policy = self.critic_1.forward(state, action).view(-1)
         q2_old_policy = self.critic_2.forward(state, action).view(-1)
         critic_1_loss = 0.5 * F.mse_loss(q1_old_policy, q_hat)
@@ -123,6 +161,3 @@ class AgentSac():
         self.critic_2.optimizer.step()
 
         self.update_network_parameters()
-
-
-
