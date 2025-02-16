@@ -185,32 +185,8 @@ class ActionFilterWrapper(gym.ActionWrapper):
         print("ActionFilter")
 
     def action(self, action):
-        # If action is a torch.Tensor, convert it to a list.
-        if isinstance(action, torch.Tensor):
-            if action.dim() == 0:
-                action = [action.item()]
-            else:
-                action = action.tolist()
-
-        # Ensure that action is a list (if not, convert it)
-        if not isinstance(action, list):
-            action = list(action)
-
-        filtered_action = {}
-        # Loop over the filters and safely index into action.
-        for i, k in enumerate(self.filters):
-            if i < len(action):
-                a_val = action[i]
-                # Convert a 0-dim tensor to a scalar, if needed.
-                if isinstance(a_val, torch.Tensor) and a_val.dim() == 0:
-                    a_val = a_val.item()
-                filtered_action[k] = a_val
-            else:
-                # If action list is too short, pad with 0.
-                filtered_action[k] = 0
-
-        # Merge with the remaining keys from the original action space, setting them to 0.
-        full_action = filtered_action | {
+        action = {k: action[i] for i, k in enumerate(self.filters)}
+        full_action = action | {
             k: 0
             for k in self.original_action_space.spaces.keys()
             if k not in self.filters

@@ -9,6 +9,7 @@ import inspect
 from bbrl.agents.gymnasium import ParallelGymAgent, make_env
 from bbrl.agents import Agents, TemporalAgent
 from bbrl.workspace import Workspace
+from utils import plot_rewards
 
 from .my_wrappers import (
     ObsFilterWrapper,
@@ -28,7 +29,7 @@ from .pystk_actor import env_name, get_wrappers, player_name
 
 
 n_steps = 300
-n_epochs = 1
+n_epochs = 1000
 scale_distance_center = 0.05
 rewards = np.zeros((n_epochs, n_steps))
 obs_filters = [
@@ -61,13 +62,13 @@ if __name__ == "__main__":
     env = ActionFilterWrapper(env, action_filters)
     env = ObsFilterWrapper(env, obs_filters, action_filters)
     env = StuckResetWrapper(env, speed_threshold=0.5, stuck_time=1)
-    env = ActionTrackerWrapper(env, action_filters)
     env = RewardCenterTrackWrapper(env, scale_distance_center)
     env = RewardWrapper(env)
     env = RewardSmoothWrapper(env)
 
     actor = ActorSac(obs_space=env.observation_space, action_space=env.action_space)
     agent = actor.agent
+    rewards = np.zeros((n_epochs, n_steps))
 
     # (2) Learn
 
@@ -83,9 +84,14 @@ if __name__ == "__main__":
             # Perform a learning step and get loss values
             loss_dict = agent.learn()
             obs = new_obs
+            rewards[e][t] = reward
             if done:
                 obs = env.reset()[0]  # Reset and start next episode
                 break
+            plot_rewards(rewards, e)
+
+    mod_path = Path(inspect.getfile(get_wrappers)).parent
+    torch.save(actor.state_dict(), mod_path / "pystk_actor.pth")
     env.close()
 
     # (3) Save the actor sate

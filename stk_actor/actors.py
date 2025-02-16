@@ -1,3 +1,4 @@
+from bbrl.workspace import SlicedTemporalTensor
 import numpy as np
 from .sac_torch import AgentSac
 import gymnasium as gym
@@ -27,14 +28,23 @@ class ActorSac(Agent):
         self.action_space = action_space
 
     def forward(self, t: int):
+        # Retrieve observations from workspace
         obs = {
-            key: self.workspace.get(key, t) for key in self.workspace.variables.keys()
+            key: self.workspace.get(key, t)
+            for key in self.workspace.keys()
+            if "action" not in key
         }
         action = self.agent.choose_action(obs)
-        action = torch.LongTensor(np.array(action))
-        self.set(
-            ("action", t), torch.LongTensor(np.array([self.action_space.sample()]))
+        example = self.workspace.get("env/env_obs/max_steer_angle", t)
+        action_tensor = torch.as_tensor(
+            action,
+            device=self.workspace.get("env/env_obs/max_steer_angle", t).device,
+            dtype=torch.float32,  # Use long if discrete actions
         )
+        if "action" not in self.workspace.variables:
+            self.workspace.variables["action"] = SlicedTemporalTensor()
+            self.workspace.set("action", t, action_tensor.unsqueeze(0))
+        self.workspace.set("action", t + 1, action_tensor.unsqueeze(0))
 
 
 class Actor(Agent):
