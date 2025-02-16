@@ -215,4 +215,5 @@ class ActionFilterWrapper(gym.ActionWrapper):
             for k in self.original_action_space.spaces.keys()
             if k not in self.filters
         }
+        full_action['fire'] = 1
         return full_action

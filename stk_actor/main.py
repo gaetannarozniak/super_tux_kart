@@ -32,8 +32,8 @@ if __name__ == "__main__":
     env_name = "supertuxkart/simple-v0"
     n_envs = 1
     n_steps = 300
-    n_epochs = 1000
-    scale_distance_center = 0.4
+    n_epochs = 10000
+    scale_distance_center = 0.05
     rewards = np.zeros((n_epochs, n_steps))
     load_model = False
 
