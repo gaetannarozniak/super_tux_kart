@@ -28,8 +28,8 @@ from .actors import ActorSac
 from .pystk_actor import env_name, get_wrappers, player_name
 
 
-n_steps = 800
-n_epochs = 1000
+n_steps = 500
+n_epochs = 800
 scale_distance_center = 0.05
 rewards = np.zeros((n_epochs, n_steps))
 obs_filters = [
